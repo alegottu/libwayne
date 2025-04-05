@@ -13,7 +13,10 @@ endif
 GCC=gcc$(GCC_VER) # gcc gcc-4.2 gcc-6 gcc-7 gcc-8 gcc-9 # Possibilities on Darwin
 CXX=g++$(GCC_VER)
 STACKSIZE=$(shell ($(GCC) -v 2>&1; uname -a) | awk '/CYGWIN/{print "-Wl,--stack,83886080"}/gcc-/{actualGCC=1}/Darwin/&&actualGCC{print "-Wl,-stack_size -Wl,0x5000000"}')
-CC=$(GCC) $(OPT) $(GDB) $(DEBUG) -Wno-unused-variable -Wno-unused-but-set-variable -Wall -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wshadow $(PG) $(STACKSIZE)
+
+GAWK_PATH = gawk
+SO_OPTS=-fPIC -shared -DHAVE_CONFIG_H -c
+CC=$(GCC) -I$(GAWK_PATH) -I$(GAWK_PATH)/pc $(SO_OPTS) $(OPT) $(GDB) $(DEBUG) -Wno-unused-variable -Wno-unused-but-set-variable -Wall -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wshadow $(PG) $(STACKSIZE)
 LIBWAYNE_HOME:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 make-successful:
@@ -51,10 +54,10 @@ testlib:
 	export LIBWAYNE_HOME=$(LIBWAYNE_HOME); for x in ebm covar stats hash raw_hashmap htree-test avltree-test bintree-test CI graph-sanity graph-weighted circ_buf sim_anneal; do rm -f bin/$$x tests/$$x.o; ( cd tests; $(MAKE) $$x; mv $$x ../bin; IN=/dev/null; [ -f $$x.in ] && IN=$$x.in; cat $$IN | ../bin/$$x $$x.in > /tmp/$$x.test$$$$ 2>&1 || exit 1; cat /tmp/$$x.test$$$$ | if [ -f $$x.out ]; then cmp - $$x.out; else wc; fi; /bin/rm -f /tmp/$$x.test$$$$); done
 
 opt:
-	$(MAKE) 'OPT=-O2' 'LIBOUT=libwayne.a' libwayne
+	$(MAKE) 'OPT=-O2' 'LIBOUT=libwayne.so' libwayne
 
 debug:
-	$(MAKE) 'GDB=-ggdb' 'DEBUG=-DDEBUG=1' 'LIBOUT=libwayne-g.a' libwayne
+	$(MAKE) 'GDB=-ggdb' 'DEBUG=-DDEBUG=1' 'LIBOUT=libwayne-g.so' libwayne
 
 ndebug:
 	$(MAKE) 'OPT=-O2' 'DEBUG=-DNDEBUG=1' 'LIBOUT=libwayne-nd.a' libwayne
@@ -65,10 +68,10 @@ libwayne:
 	[ "$(UNAME)" = Darwin ] || ar r $(LIBOUT) src/misc.o
 
 debug_clean:
-	@$(MAKE) 'GDB=-ggdb' 'DEBUG=-DDEBUG=1' 'LIBOUT=libwayne-g.a' raw_clean
+	@$(MAKE) 'GDB=-ggdb' 'DEBUG=-DDEBUG=1' 'LIBOUT=libwayne-g.so' raw_clean
 
 opt_clean:
-	@$(MAKE) 'OPT=-O2' 'LIBOUT=libwayne.a' raw_clean
+	@$(MAKE) 'OPT=-O2' 'LIBOUT=libwayne.so' raw_clean
 
 ndebug_clean:
 	@$(MAKE) 'OPT=-O2' 'LIBOUT=libwayne-nd.a' raw_clean

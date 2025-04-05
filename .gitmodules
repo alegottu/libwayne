@@ -1,0 +1,4 @@
+[submodule "gawk"]
+	path = gawk
+	url = https://git.savannah.gnu.org/r/gawk.git
+	branch = gawk-3.1-stable

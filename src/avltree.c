@@ -17,27 +17,27 @@ extern "C" {
 #include "avltree.h"
 #include <math.h> // for logarithm
 
-static foint CopyInt(foint i)
+static awk_value_t CopyNum(awk_value_t n)
 {
-    return i;
+    return n;
 }
 
-static void FreeInt(foint i) {}
+static void FreeNum(awk_value_t n) {}
 
-static int CmpInt(foint i, foint j) { return i.i - j.i; }
+static int CmpNum(awk_value_t n1, awk_value_t n2) { return n1.num_value - n2.num_value; }
 
 
-AVLTREE *AvlTreeAlloc(pCmpFcn cmpKey,
-    pFointCopyFcn copyKey, pFointFreeFcn freeKey,
-    pFointCopyFcn copyInfo, pFointFreeFcn freeInfo)
+AVLTREE *AvlTreeAlloc(pTreeCmpFcn cmpKey,
+    pTreeCopyFcn copyKey, pTreeFreeFcn freeKey,
+    pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo)
 {
     AVLTREE *tree = Malloc(sizeof(AVLTREE));
     tree->root = NULL;
-    tree->cmpKey = cmpKey ? cmpKey : CmpInt;
-    tree->copyKey = copyKey ? copyKey : CopyInt;
-    tree->freeKey = freeKey ? freeKey : FreeInt;
-    tree->copyInfo = copyInfo ? copyInfo : CopyInt;
-    tree->freeInfo = freeInfo ? freeInfo : FreeInt;
+    tree->cmpKey = cmpKey ? cmpKey : CmpNum;
+    tree->copyKey = copyKey ? copyKey : CopyNum;
+    tree->freeKey = freeKey ? freeKey : FreeNum;
+    tree->copyInfo = copyInfo ? copyInfo : CopyNum;
+    tree->freeInfo = freeInfo ? freeInfo : FreeNum;
     tree->n = 0;
     return tree;
 }
@@ -62,7 +62,7 @@ static void Rotate(AVLTREENODE **P, AVLTREENODE *p, int d) {
     }
 }
 
-void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
+void AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root), // P is a locative used to trace the path
 	*a,**A, *b,**B, *c,**C, *r,**R; // temporary node pointers and their locatives
@@ -133,7 +133,7 @@ void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
 
 
 // if pInfo is 1, delete the element; NULL, just return Boolean if found; otherwise populate.
-Boolean AvlTreeLookDel(AVLTREE *tree, foint key, foint *pInfo)
+Boolean AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t *pInfo)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root);
     while(p)
@@ -167,7 +167,8 @@ Boolean AvlTreeLookDel(AVLTREE *tree, foint key, foint *pInfo)
 }
 
 
-static int AvlTreeTraverseHelper (foint globals, AVLTREENODE *p, pFointTraverseFcn f)
+// TODO: keeping globals as foint for now, not sure if necessary to change
+static int AvlTreeTraverseHelper (foint globals, AVLTREENODE *p, pTreeTraverseFcn f)
 {
     int cont = 1;
     if(p) {
@@ -178,13 +179,13 @@ static int AvlTreeTraverseHelper (foint globals, AVLTREENODE *p, pFointTraverseF
     return cont;
 }
 
-int AvlTreeTraverse (foint globals, AVLTREE *tree, pFointTraverseFcn f)
+int AvlTreeTraverse (foint globals, AVLTREE *tree, pTreeTraverseFcn f)
 {
     return AvlTreeTraverseHelper(globals, tree->root, f);
 }
 
 static int _avlTreeSanityNodeCount, _avlTreeSanityPhysicalNodeCount;
-static Boolean AvlTreeSanityHelper ( AVLTREENODE *p, pCmpFcn cmpKey )
+static Boolean AvlTreeSanityHelper ( AVLTREENODE *p, pTreeCmpFcn cmpKey )
 {
     if(p) {
 	++_avlTreeSanityPhysicalNodeCount;

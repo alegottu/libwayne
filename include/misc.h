@@ -16,6 +16,10 @@ extern "C" {
 #include <time.h> // because I use the time() function so much
 
 #include <math.h>
+
+#include <sys/stat.h>
+#include <gawkapi.h>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -97,12 +101,13 @@ typedef union _voidInt {
 */
 typedef int (*pCmpFcn)(foint, foint);
 
-/* Copy a foint.  In all instances, you are expected to know what the
-** foint actually is, and return a copy of it.  If a FointCopy function
-** pointer is ever NULL, the code will do a shallow copy.
-*/
+typedef int (*pTreeCmpFcn)(awk_value_t, awk_value_t);
+
 typedef foint (*pFointCopyFcn)(foint);
 typedef void (*pFointFreeFcn)(foint);
+
+typedef awk_value_t (*pTreeCopyFcn)(awk_value_t);
+typedef void (*pTreeFreeFcn)(awk_value_t);
 
 /*
 ** The function type that gets called during a traversal (eg of a binary tree). It should
@@ -110,6 +115,8 @@ typedef void (*pFointFreeFcn)(foint);
 **
 */
 typedef int (*pFointTraverseFcn)(foint globals, foint key, foint data);
+
+typedef int (*pTreeTraverseFcn)(foint globals, awk_value_t key, awk_value_t data);
 
 /* this is is the general error return value for most abstract data types */
 extern const foint ABSTRACT_ERROR;
