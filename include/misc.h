@@ -101,6 +101,8 @@ typedef union _voidInt {
 */
 typedef int (*pCmpFcn)(foint, foint);
 
+typedef int (*pTreeCmpFcn)(awk_value_t, awk_value_t);
+
 typedef foint (*pFointCopyFcn)(foint);
 typedef void (*pFointFreeFcn)(foint);
 
@@ -114,7 +116,7 @@ typedef void (*pTreeFreeFcn)(awk_value_t);
 */
 typedef int (*pFointTraverseFcn)(foint globals, foint key, foint data);
 
-typedef int (*pTreeTraverseFcn)(foint globals, char* key, awk_value_t data);
+typedef int (*pTreeTraverseFcn)(foint globals, awk_value_t key, awk_value_t data);
 
 /* this is is the general error return value for most abstract data types */
 extern const foint ABSTRACT_ERROR;
