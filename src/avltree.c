@@ -24,18 +24,10 @@ static awk_value_t CopyNum(awk_value_t n)
 
 static void FreeNum(awk_value_t n) {}
 
-static int CmpNum(awk_value_t n1, awk_value_t n2) { return n1.num_value - n2.num_value; }
-
-
-AVLTREE *AvlTreeAlloc(pTreeCmpFcn cmpKey,
-    pTreeCopyFcn copyKey, pTreeFreeFcn freeKey,
-    pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo)
+AVLTREE *AvlTreeAlloc(pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo)
 {
     AVLTREE *tree = Malloc(sizeof(AVLTREE));
     tree->root = NULL;
-    tree->cmpKey = cmpKey ? cmpKey : CmpNum;
-    tree->copyKey = copyKey ? copyKey : CopyNum;
-    tree->freeKey = freeKey ? freeKey : FreeNum;
     tree->copyInfo = copyInfo ? copyInfo : CopyNum;
     tree->freeInfo = freeInfo ? freeInfo : FreeNum;
     tree->n = 0;
@@ -62,14 +54,14 @@ static void Rotate(AVLTREENODE **P, AVLTREENODE *p, int d) {
     }
 }
 
-awk_value_t* AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
+awk_value_t* AvlTreeInsert(AVLTREE *tree, char* key, awk_value_t info)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root), // P is a locative used to trace the path
 	*a,**A, *b,**B, *c,**C, *r,**R; // temporary node pointers and their locatives
     int cmp; // temporary storage of a key comparison
     Boolean critNodeFound=false;
 
-    while(p && (cmp = tree->cmpKey(key, p->key)))
+    while(p && (cmp = strcmp(key, p->key)))
     {
 	if(p->balance != 0) {
 	    critNodeFound=true;
@@ -81,20 +73,20 @@ awk_value_t* AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
     if(p) // key already exists, just update info
     {
 	assert(cmp==0);
-	assert(cmp == tree->cmpKey(key, p->key));
+	assert(cmp == strcmp(key, p->key));
 	tree->freeInfo(p->info);
 	p->info = tree->copyInfo(info);
 	return &p->info;
     }
 
     p = (AVLTREENODE*) Calloc(1,sizeof(AVLTREENODE)); // insert a new leaf
-    p->key = tree->copyKey(key);
+    p->key = strdup(key);
     p->info = tree->copyInfo(info);
     p->left = p->right = NULL;
     p->balance = 0;
 
 // This is the macro that implements the pseudo-code (d,Q) <- K::P in Lewis+Denenberg Algorithm 7.2 (page 227)
-#define AssignBalance(d,Q,q,K,P,p) { int ABcmp=tree->cmpKey((K),(p)->key);\
+#define AssignBalance(d,Q,q,K,P,p) { int ABcmp=strcmp((K),(p)->key);\
     (d) = (ABcmp==0?0: (ABcmp<0?-1:1)); \
     if(ABcmp<0){AssignLocative(Q,q,p->left );}else \
     if(ABcmp>0){AssignLocative(Q,q,p->right);}else \
@@ -127,19 +119,19 @@ awk_value_t* AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
 	}
     }
     // Adjust balances of nodes of balance 0 along the rest of the path
-    while(tree->cmpKey(r->key,key)) AssignBalance(r->balance,R,r,key,R,r);
+    while(strcmp(r->key,key)) AssignBalance(r->balance,R,r,key,R,r);
     tree->n++;
 	return &p->info;
 }
 
 
 // if pInfo is 1, delete the element; NULL, just return Boolean if found; otherwise populate.
-awk_value_t* AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t* pInfo)
+awk_value_t* AvlTreeLookDel(AVLTREE *tree, char* key, awk_value_t* pInfo)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root);
     while(p)
     {
-	int cmp = tree->cmpKey(key, p->key);
+	int cmp = strcmp(key, p->key);
 	if(cmp == 0) {
 	    if((long)pInfo==1) break; // delete the element
 	    if(pInfo) *pInfo = p->info; // lookup with assign
@@ -158,7 +150,7 @@ awk_value_t* AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t* pInfo)
 	else if(p->right) *P = p->right;
 	else *P = NULL;
 
-	tree->freeKey(p->key);
+	free(p->key);
 	tree->freeInfo(p->info);
 	Free(p);
 
@@ -185,14 +177,15 @@ int AvlTreeTraverse (foint globals, AVLTREE *tree, pTreeTraverseFcn f)
     return AvlTreeTraverseHelper(globals, tree->root, f);
 }
 
+/*
 static int _avlTreeSanityNodeCount, _avlTreeSanityPhysicalNodeCount;
-static Boolean AvlTreeSanityHelper ( AVLTREENODE *p, pTreeCmpFcn cmpKey )
+static Boolean AvlTreeSanityHelper ( AVLTREENODE *p)
 {
     if(p) {
 	++_avlTreeSanityPhysicalNodeCount;
-	if(p->left) { assert(cmpKey(p->left->key, p->key)<0); AvlTreeSanityHelper(p->left, cmpKey); }
+	if(p->left) { assert(strcmp(p->left->key, p->key)<0); AvlTreeSanityHelper(p->left, cmpKey); }
 	++_avlTreeSanityNodeCount;
-	if(p->right) { assert(cmpKey(p->key, p->right->key)<0); AvlTreeSanityHelper(p->right, cmpKey); }
+	if(p->right) { assert(strcmp(p->key, p->right->key)<0); AvlTreeSanityHelper(p->right, cmpKey); }
     }
     return true;
 }
@@ -202,11 +195,12 @@ Boolean AvlTreeSanityCheck ( AVLTREE *tree)
     _avlTreeSanityNodeCount = 0;
     _avlTreeSanityPhysicalNodeCount = 0;
     assert(0 <= tree->n);
-    AvlTreeSanityHelper(tree->root, tree->cmpKey);
+    AvlTreeSanityHelper(tree->root);
     assert(_avlTreeSanityNodeCount == tree->n);
     assert(_avlTreeSanityPhysicalNodeCount == tree->n);
     return true;
 }
+*/
 
 #if 0
 /* LookupKey: the tree is ordered on key, not info.  So we have to do a
@@ -218,7 +212,7 @@ foint AvlTreeLookupKey(AVLTREE *tree, foint info)
     AVLTREENODE *p = tree->root;
     if(p)
     {
-	if(tree->cmpKey(p->info, info) == 0)
+	if(strcmp(p->info, info) == 0)
 	    return p->key;
 	else
 	{
@@ -240,7 +234,7 @@ static void AvlTreeFreeHelper(AVLTREE *tree, AVLTREENODE *t)
     {
 	AvlTreeFreeHelper(tree, t->left);
 	AvlTreeFreeHelper(tree, t->right);
-	tree->freeKey(t->key);
+	free(t->key);
 	tree->freeInfo(t->info);
 	{assert(tree->n > 0); tree->n--; }
 	free(t);

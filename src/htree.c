@@ -6,25 +6,23 @@ extern "C" {
 
 /*-------------------  Types  ------------------*/
 
-HTREE *HTreeAlloc(int depth, pTreeCmpFcn cmpKey, pTreeCopyFcn copyKey, pTreeFreeFcn freeKey,
-    pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo)
+HTREE *HTreeAlloc(int depth, pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo)
 {
     assert(depth>0);
     HTREE *h = Calloc(1, sizeof(HTREE));
     h->depth = depth;
     // Be nice and create the top-level tree.
-    h->cmpKey = cmpKey; h->copyKey = copyKey; h->freeKey = freeKey;
     h->copyInfo = copyInfo; h->freeInfo = freeInfo;
 
 	// Intermediary trees only store pointers, default copy and free should be used
 	if (depth != 1)
 		copyInfo = NULL; freeInfo = NULL;
 
-    h->tree = TreeAlloc(cmpKey, copyKey, freeKey, copyInfo, freeInfo);
+    h->tree = TreeAlloc(copyInfo, freeInfo);
     return h;
 }
 
-static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t data)
+static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, char* keys[], awk_value_t data)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we're hit the lowest level tree; its data elements are the final elements.
@@ -42,7 +40,7 @@ static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree
 		if (currentDepth < (h->depth-2))
 			copyInfo = NULL; freeInfo = NULL;
 
-	    nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
+	    nextTree = TreeAlloc(copyInfo, freeInfo);
 	    nextLevel.num_ptr = nextTree;
 	    TreeInsert(tree, keys[currentDepth], nextLevel);
 	}
@@ -55,15 +53,13 @@ static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree
 }
 
 // key is an array with exactly "depth" elements, data is what you want to put at the lowest level.
-awk_value_t* HTreeInsert(HTREE *h, awk_value_t keys[], awk_value_t data)
+awk_value_t* HTreeInsert(HTREE *h, char* keys[], awk_value_t data)
 {
-	// TODO: not sure if this first line is really necessary
-    awk_value_t fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    return HTreeInsertHelper(h, 0, h->tree, fkeys, data);
+    return HTreeInsertHelper(h, 0, h->tree, keys, data);
 }
 
 // TODO: edit LookDel to be possible to stop before final level
-static awk_value_t* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t *pData)
+static awk_value_t* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, char* keys[], awk_value_t *pData)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we've hit the lowest level tree; its data elements are the final elements.
@@ -80,14 +76,12 @@ static awk_value_t* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tre
     }
 }
 
-awk_value_t* HTreeLookDel(HTREE *h, awk_value_t keys[], awk_value_t *pData)
+awk_value_t* HTreeLookDel(HTREE *h, char* keys[], awk_value_t *pData)
 {
-	// TODO: same as with insert
-    awk_value_t fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    return HTreeLookDelHelper(h, 0, h->tree, fkeys, pData);
+    return HTreeLookDelHelper(h, 0, h->tree, keys, pData);
 }
 
-static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], int sizes[])
+static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, char* keys[], int sizes[])
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     sizes[currentDepth] = tree->n;
@@ -105,11 +99,9 @@ static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_valu
     }
 }
 
-int HTreeSizes(HTREE *h, awk_value_t keys[], int sizes[])
+int HTreeSizes(HTREE *h, char* keys[], int sizes[])
 {
-	// TODO: same as with LookDel
-    awk_value_t fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    return HTreeSizesHelper(h, 0, h->tree, fkeys, sizes);
+    return HTreeSizesHelper(h, 0, h->tree, keys, sizes);
 }
 
 
@@ -117,7 +109,7 @@ static void HTreeFreeHelper(foint globals, HTREE *h, int currentDepth, TREETYPE 
 static HTREE *_TraverseH;
 static int _TraverseDepth;
 // TODO: also not sure if need to change foint here / just above
-static int TraverseFree(foint globals, awk_value_t key, awk_value_t data) {
+static int TraverseFree(foint globals, char* key, awk_value_t data) {
     assert(_TraverseDepth < _TraverseH->depth);
     TREETYPE *t = data.num_ptr;
     int depth = _TraverseDepth;
