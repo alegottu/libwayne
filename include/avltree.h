@@ -32,14 +32,15 @@ typedef struct _avlTree
 AVLTREE *AvlTreeAlloc(pTreeCmpFcn cmpKey, pTreeCopyFcn copyKey, pTreeFreeFcn freeKey,
     pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo);
 
-void AvlTreeInsert(AVLTREE *, awk_value_t key, awk_value_t info); // replaces info if the key already exists
+awk_value_t* AvlTreeInsert(AVLTREE *, awk_value_t key, awk_value_t info); // replaces info if the key already exists
 
 /* O(log n): both lookup and/or delete: returns false if element not found.
 ** If found and (int)pInfo==1, delete it; otherwise if pInfo != NULL, populate with new info; otherwise just return true.
 */
-Boolean AvlTreeLookDel(AVLTREE *, awk_value_t key, awk_value_t *pInfo);
-#define AvlTreeDelete(T,k) AvlTreeLookDel((T),(k),(awk_value_t*)1)
-#define AvlTreeLookup(T,k,f) AvlTreeLookDel((T),(k), (f))
+awk_value_t* AvlTreeLookDel(AVLTREE *, awk_value_t key, awk_value_t* pInfo);
+#define AvlTreeDelete(T,k,f) AvlTreeLookDel((T),(k),(awk_value_t*)1)
+#define AvlTreeLookup(T,k,p) AvlTreeLookDel((T),(k),(p))
+// return NULL = not found
 
 /*
 ** AvlTreeTraverse: Traverse an AVL tree, calling your function pointer (pFointTraversalFcn) on each element,

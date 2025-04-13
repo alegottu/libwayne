@@ -62,7 +62,7 @@ static void Rotate(AVLTREENODE **P, AVLTREENODE *p, int d) {
     }
 }
 
-void AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
+awk_value_t* AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root), // P is a locative used to trace the path
 	*a,**A, *b,**B, *c,**C, *r,**R; // temporary node pointers and their locatives
@@ -84,7 +84,7 @@ void AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
 	assert(cmp == tree->cmpKey(key, p->key));
 	tree->freeInfo(p->info);
 	p->info = tree->copyInfo(info);
-	return;
+	return &p->info;
     }
 
     p = (AVLTREENODE*) Calloc(1,sizeof(AVLTREENODE)); // insert a new leaf
@@ -129,11 +129,12 @@ void AvlTreeInsert(AVLTREE *tree, awk_value_t key, awk_value_t info)
     // Adjust balances of nodes of balance 0 along the rest of the path
     while(tree->cmpKey(r->key,key)) AssignBalance(r->balance,R,r,key,R,r);
     tree->n++;
+	return &p->info;
 }
 
 
 // if pInfo is 1, delete the element; NULL, just return Boolean if found; otherwise populate.
-Boolean AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t *pInfo)
+awk_value_t* AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t* pInfo)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root);
     while(p)
@@ -142,12 +143,12 @@ Boolean AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t *pInfo)
 	if(cmp == 0) {
 	    if((long)pInfo==1) break; // delete the element
 	    if(pInfo) *pInfo = p->info; // lookup with assign
-	    return true;
+	    return &p->info;
 	}
 	else if(cmp < 0) AssignLocative(P,p,p->left);
 	else             AssignLocative(P,p,p->right);
     }
-    if(!p) return false; // node not found, nothing deleted
+    if(!p) return NULL; // node not found, nothing deleted
     // at this point we know the key has been found
     if((long)pInfo == 1) { // delete the element
 	assert(tree->n > 0);
@@ -163,7 +164,7 @@ Boolean AvlTreeLookDel(AVLTREE *tree, awk_value_t key, awk_value_t *pInfo)
 
 	tree->n--;
     }
-    return true;
+    return &p->info;
 }
 
 

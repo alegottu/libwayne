@@ -53,13 +53,14 @@ HTREE *HTreeAlloc(int depth, pTreeCmpFcn cmpKey, pTreeCopyFcn copyKey, pTreeFree
     pTreeCopyFcn copyInfo, pTreeFreeFcn freeInfo);
 
 // key is an array with exactly "depth" elements, info is what you want to put at the lowest level.
-void HTreeInsert(HTREE *, awk_value_t keys[], awk_value_t info);
+awk_value_t* HTreeInsert(HTREE *, awk_value_t keys[], awk_value_t info);
 
 // implements both lookup and delete: if not found, return false. Otherwise, if (int)pInfo==1, delete the element.
 // Otherwise, if pInfo!=NULL, populate it with new info; otherwise just return true (found).
-Boolean HTreeLookDel(HTREE *, awk_value_t keys[], awk_value_t *pInfo);
+awk_value_t* HTreeLookDel(HTREE *, awk_value_t keys[], awk_value_t* pInfo);
 #define HTreeLookup(h,k,p) HTreeLookDel((h),(k),(p))
-#define HTreeDelete(h,k)   HTreeLookDel((h),(k),(pInfo*)1)
+#define HTreeDelete(h,k,f)   HTreeLookDel((h),(k),(awk_value_t*)1)
+// return NULL = not found
 
 // number of elements in trees down the hierarchy along key path; returns number of sizes[] we managed to fill,
 // which should be equal to depth.

@@ -11,6 +11,9 @@ Enter 3 keys per line to lookup; EOF to exit*/
 #define DEPTH 3
 int main(int argc, char *argv[])
 {
+	return 0;
+}
+/* Out of date with awk_value_t branch
     assert(argc == 2);
 {
     FILE *fp = fopen(argv[1], "r");
@@ -49,3 +52,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 }
+*/

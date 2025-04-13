@@ -24,11 +24,11 @@ HTREE *HTreeAlloc(int depth, pTreeCmpFcn cmpKey, pTreeCopyFcn copyKey, pTreeFree
     return h;
 }
 
-static void HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t data)
+static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t data)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we're hit the lowest level tree; its data elements are the final elements.
-	TreeInsert(tree, keys[currentDepth], data);
+	return TreeInsert(tree, keys[currentDepth], data);
     else {
 	// Otherwise, we are NOT at the lowest level tree; the data members of these nodes are themselves other trees,
 	// so to find the next tree we use the key at this level to *look up* the binary tree at the next level down
@@ -51,18 +51,19 @@ static void HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_va
 	assert(nextTree);
 	HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
     }
+	return NULL;
 }
 
 // key is an array with exactly "depth" elements, data is what you want to put at the lowest level.
-void HTreeInsert(HTREE *h, awk_value_t keys[], awk_value_t data)
+awk_value_t* HTreeInsert(HTREE *h, awk_value_t keys[], awk_value_t data)
 {
 	// TODO: not sure if this first line is really necessary
     awk_value_t fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    HTreeInsertHelper(h, 0, h->tree, fkeys, data);
+    return HTreeInsertHelper(h, 0, h->tree, fkeys, data);
 }
 
 // TODO: edit LookDel to be possible to stop before final level
-static Boolean HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t *pData)
+static awk_value_t* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, awk_value_t keys[], awk_value_t *pData)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we've hit the lowest level tree; its data elements are the final elements.
@@ -71,7 +72,7 @@ static Boolean HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, aw
 	awk_value_t nextLevel;
 	TREETYPE *nextTree;
 	if(!TreeLookup(tree, keys[currentDepth], &nextLevel))
-	    return false;
+	    return NULL;
 	else
 	    nextTree = nextLevel.num_ptr;
 	assert(nextTree);
@@ -79,7 +80,7 @@ static Boolean HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, aw
     }
 }
 
-Boolean HTreeLookDel(HTREE *h, awk_value_t keys[], awk_value_t *pData)
+awk_value_t* HTreeLookDel(HTREE *h, awk_value_t keys[], awk_value_t *pData)
 {
 	// TODO: same as with insert
     awk_value_t fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
