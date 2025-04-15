@@ -44,14 +44,13 @@ static awk_value_t* HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree
 
 	    nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
 	    nextLevel.num_ptr = nextTree;
-	    TreeInsert(tree, keys[currentDepth], nextLevel);
+	    return TreeInsert(tree, keys[currentDepth], nextLevel);
 	}
 	else
 	    nextTree = nextLevel.num_ptr;
 	assert(nextTree);
-	HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
+	return HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
     }
-	return NULL;
 }
 
 // key is an array with exactly "depth" elements, data is what you want to put at the lowest level.
