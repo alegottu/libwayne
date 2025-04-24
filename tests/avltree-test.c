@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	--lines;
 	printf("Deleting <%s>; n=%d... ", bufs[lines], tree->n);
 	Boolean exists = AvlTreeLookup(tree, (foint)(key.s=bufs[lines])) != NULL;
-	Boolean del = AvlTreeDelete(tree, (foint)(key.s=bufs[lines])).v != NULL;
+	Boolean del = AvlTreeDelete(tree, (foint)(key.s=bufs[lines]))->v != NULL;
 	assert(exists == del);
 	printf("Deleted! n=%d\n", tree->n);
 	AvlTreeSanityCheck(tree);

@@ -83,14 +83,17 @@ foint* HTreeLookDel(HTREE *h, foint keys[], Boolean delete)
     return HTreeLookDelHelper(h, 0, h->tree, fkeys, delete);
 }
 
-const foint SHTreeLookDel(HTREE* tree, foint keys[], Boolean delete)
+const Boolean SHTreeLookup(HTREE* tree, foint keys[], foint* pInfo)
 {
-	foint* result = HTreeLookDel(tree, keys, delete);
+	foint* result = HTreeLookDel(tree, keys, false);
 
 	if (result != NULL) 
-		return *result;
+	{
+		*pInfo = *result;
+		return true;
+	}
 	else
-		return (foint)NULL;
+		return false;
 }
 
 static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], int sizes[])

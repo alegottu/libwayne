@@ -23,7 +23,6 @@ extern "C" {
 #define TreeLookup AvlTreeLookup
 #define STreeLookup SAvlTreeLookup
 #define TreeLookDel AvlTreeLookDel
-#define STreeLookDel SAvlTreeLookDel
 #define TreeTraverse AvlTreeTraverse
 #define TreeFree AvlTreeFree
 #else
@@ -60,11 +59,10 @@ void HTreeInsert(HTREE *, foint keys[], foint info);
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element if delete is true
 foint* HTreeLookDel(HTREE *, foint keys[], Boolean delete);
-// "safe" version, only returns a value (if requested), checks pointer for you
-const foint SHTreeLookDel(HTREE*, foint keys[], Boolean delete);
+// "safe" version, only gives a value, returns false if not found
+const Boolean SHTreeLookup(HTREE*, foint keys[], foint* pInfo);
 #define HTreeLookup(h,k) HTreeLookDel((h),(k),false)
 #define HTreeDelete(h,k) SHTreeLookDel((h),(k),true)
-#define SHTreeLookup(h,k) SHTreeLookDel((h),(k),false)
 
 // number of elements in trees down the hierarchy along key path; returns number of sizes[] we managed to fill,
 // which should be equal to depth.
