@@ -165,14 +165,17 @@ foint* const AvlTreeLookDel(AVLTREE *tree, foint key, Boolean delete)
 }
 
 
-const foint SAvlTreeLookDel(AVLTREE *tree, foint key, Boolean delete)
+const Boolean SAvlTreeLookup(AVLTREE *tree, foint key, foint* pInfo)
 {
-	foint* result = AvlTreeLookDel(tree, key, delete);
+	foint* result = AvlTreeLookDel(tree, key, false);
 
 	if (result != NULL) 
-		return *result;
+	{
+		*pInfo = *result;
+		return true;
+	}
 	else
-		return (foint)NULL;
+		return false;
 }
 
 

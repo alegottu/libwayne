@@ -37,11 +37,10 @@ void AvlTreeInsert(AVLTREE *, foint key, foint info); // replaces info if the ke
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element when delete is true
 foint* const AvlTreeLookDel(AVLTREE *, foint key, Boolean delete);
-// "safe" version, just returns a value (if requested), checks pointer for you
-const foint SAvlTreeLookDel(AVLTREE *, foint key, Boolean delete);
-#define AvlTreeDelete(T,k) SAvlTreeLookDel((T),(k),true)
+// "safe" version, just gives a value, returns false if not found
+const Boolean SAvlTreeLookup(AVLTREE *, foint key, foint* pInfo);
+#define AvlTreeDelete(T,k) AvlTreeLookDel((T),(k),true)
 #define AvlTreeLookup(T,k) AvlTreeLookDel((T),(k),false)
-#define SAvlTreeLookup(T,k) SAvlTreeLookDel((T),(k),false)
 
 /*
 ** AvlTreeTraverse: Traverse an AVL tree, calling your function pointer (pFointTraversalFcn) on each element,
