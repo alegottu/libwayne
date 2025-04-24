@@ -34,12 +34,14 @@ AVLTREE *AvlTreeAlloc(pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFcn freeK
 
 void AvlTreeInsert(AVLTREE *, foint key, foint info); // replaces info if the key already exists
 
-/* O(log n): both lookup and/or delete: returns false if element not found.
-** If found and (int)pInfo==1, delete it; otherwise if pInfo != NULL, populate with new info; otherwise just return true.
-*/
-Boolean AvlTreeLookDel(AVLTREE *, foint key, foint *pInfo);
-#define AvlTreeDelete(T,k) AvlTreeLookDel((T),(k),(foint*)1)
-#define AvlTreeLookup(T,k,f) AvlTreeLookDel((T),(k), (f))
+// returns a foint* so that you can modify the element without having to re-insert it; 
+// returns NULL upon failure; deletes the element when delete is true
+foint* const AvlTreeLookDel(AVLTREE *, foint key, Boolean delete);
+// "safe" version, just returns a value (if requested), checks pointer for you
+const foint SAvlTreeLookDel(AVLTREE *, foint key, Boolean delete);
+#define AvlTreeDelete(T,k) SAvlTreeLookDel((T),(k),true)
+#define AvlTreeLookup(T,k) AvlTreeLookDel((T),(k),false)
+#define SAvlTreeLookup(T,k) SAvlTreeLookDel((T),(k),false)
 
 /*
 ** AvlTreeTraverse: Traverse an AVL tree, calling your function pointer (pFointTraversalFcn) on each element,

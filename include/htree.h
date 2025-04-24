@@ -21,7 +21,9 @@ extern "C" {
 #define TreeAlloc AvlTreeAlloc
 #define TreeInsert AvlTreeInsert
 #define TreeLookup AvlTreeLookup
+#define STreeLookup SAvlTreeLookup
 #define TreeLookDel AvlTreeLookDel
+#define STreeLookDel SAvlTreeLookDel
 #define TreeTraverse AvlTreeTraverse
 #define TreeFree AvlTreeFree
 #else
@@ -55,11 +57,14 @@ HTREE *HTreeAlloc(int depth, pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFc
 // key is an array with exactly "depth" elements, info is what you want to put at the lowest level.
 void HTreeInsert(HTREE *, foint keys[], foint info);
 
-// implements both lookup and delete: if not found, return false. Otherwise, if (int)pInfo==1, delete the element.
-// Otherwise, if pInfo!=NULL, populate it with new info; otherwise just return true (found).
-Boolean HTreeLookDel(HTREE *, foint keys[], foint *pInfo);
-#define HTreeLookup(h,k,p) HTreeLookDel((h),(k),(p))
-#define HTreeDelete(h,k)   HTreeLookDel((h),(k),(pInfo*)1)
+// returns a foint* so that you can modify the element without having to re-insert it; 
+// returns NULL upon failure; deletes the element if delete is true
+foint* HTreeLookDel(HTREE *, foint keys[], Boolean delete);
+// "safe" version, only returns a value (if requested), checks pointer for you
+const foint SHTreeLookDel(HTREE*, foint keys[], Boolean delete);
+#define HTreeLookup(h,k) HTreeLookDel((h),(k),false)
+#define HTreeDelete(h,k) SHTreeLookDel((h),(k),true)
+#define SHTreeLookup(h,k) SHTreeLookDel((h),(k),false)
 
 // number of elements in trees down the hierarchy along key path; returns number of sizes[] we managed to fill,
 // which should be equal to depth.
