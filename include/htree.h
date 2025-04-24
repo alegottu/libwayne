@@ -62,7 +62,7 @@ foint* HTreeLookDel(HTREE *, foint keys[], Boolean delete);
 // "safe" version, only gives a value, returns false if not found
 const Boolean SHTreeLookup(HTREE*, foint keys[], foint* pInfo);
 #define HTreeLookup(h,k) HTreeLookDel((h),(k),false)
-#define HTreeDelete(h,k) SHTreeLookDel((h),(k),true)
+#define HTreeDelete(h,k) HTreeLookDel((h),(k),true)
 
 // number of elements in trees down the hierarchy along key path; returns number of sizes[] we managed to fill,
 // which should be equal to depth.
