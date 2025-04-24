@@ -54,7 +54,8 @@ HTREE *HTreeAlloc(int depth, pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFc
     pFointCopyFcn copyInfo, pFointFreeFcn freeInfo);
 
 // key is an array with exactly "depth" elements, info is what you want to put at the lowest level.
-void HTreeInsert(HTREE *, foint keys[], foint info);
+// returns a pointer to the info just inserted
+foint* const HTreeInsert(HTREE *, foint keys[], foint info);
 
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element if delete is true

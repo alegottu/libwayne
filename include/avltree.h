@@ -32,7 +32,8 @@ typedef struct _avlTree
 AVLTREE *AvlTreeAlloc(pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFcn freeKey,
     pFointCopyFcn copyInfo, pFointFreeFcn freeInfo);
 
-void AvlTreeInsert(AVLTREE *, foint key, foint info); // replaces info if the key already exists
+// replaces info if the key already exists, returns a pointer to the info inserted
+foint* const AvlTreeInsert(AVLTREE *, foint key, foint info);
 
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element when delete is true

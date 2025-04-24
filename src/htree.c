@@ -24,40 +24,40 @@ HTREE *HTreeAlloc(int depth, pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFc
     return h;
 }
 
-static void HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], foint data)
+static foint* const HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], foint data)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we're hit the lowest level tree; its data elements are the final elements.
-	TreeInsert(tree, keys[currentDepth], data);
+		return TreeInsert(tree, keys[currentDepth], data);
     else {
-	// Otherwise, we are NOT at the lowest level tree; the data members of these nodes are themselves other trees,
-	// so to find the next tree we use the key at this level to *look up* the binary tree at the next level down
-	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
-	TREETYPE *nextTree;
-	if(nextLevel == NULL) {
-		pFointCopyFcn copyInfo = h->copyInfo;
-		pFointFreeFcn freeInfo = h->freeInfo;
+		// Otherwise, we are NOT at the lowest level tree; the data members of these nodes are themselves other trees,
+		// so to find the next tree we use the key at this level to *look up* the binary tree at the next level down
+		foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
+		TREETYPE *nextTree;
+		if(nextLevel == NULL) {
+			pFointCopyFcn copyInfo = h->copyInfo;
+			pFointFreeFcn freeInfo = h->freeInfo;
 
-		// Intermediary trees only store pointers, default copy and free should be used
-		if (currentDepth < (h->depth-2))
-			copyInfo = NULL; freeInfo = NULL;
+			// Intermediary trees only store pointers, default copy and free should be used
+			if (currentDepth < (h->depth-2))
+				copyInfo = NULL; freeInfo = NULL;
 
-	    nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
-	    nextLevel->v = nextTree;
-	    TreeInsert(tree, keys[currentDepth], *nextLevel);
-	}
-	else
-	    nextTree = nextLevel->v;
-	assert(nextTree);
-	HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
+			nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
+			nextLevel->v = nextTree;
+			TreeInsert(tree, keys[currentDepth], *nextLevel);
+		}
+		else
+			nextTree = nextLevel->v;
+		assert(nextTree);
+		return HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
     }
 }
 
 // key is an array with exactly "depth" elements, data is what you want to put at the lowest level.
-void HTreeInsert(HTREE *h, foint keys[], foint data)
+foint* const HTreeInsert(HTREE *h, foint keys[], foint data)
 {
     foint fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    HTreeInsertHelper(h, 0, h->tree, fkeys, data);
+    return HTreeInsertHelper(h, 0, h->tree, fkeys, data);
 }
 
 static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], Boolean delete)
