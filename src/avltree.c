@@ -62,7 +62,7 @@ static void Rotate(AVLTREENODE **P, AVLTREENODE *p, int d) {
     }
 }
 
-void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
+foint* const AvlTreeInsert(AVLTREE *tree, foint key, foint info)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root), // P is a locative used to trace the path
 	*a,**A, *b,**B, *c,**C, *r,**R; // temporary node pointers and their locatives
@@ -84,7 +84,7 @@ void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
 	assert(cmp == tree->cmpKey(key, p->key));
 	tree->freeInfo(p->info);
 	p->info = tree->copyInfo(info);
-	return;
+	return &p->info;
     }
 
     p = (AVLTREENODE*) Calloc(1,sizeof(AVLTREENODE)); // insert a new leaf
@@ -129,6 +129,7 @@ void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
     // Adjust balances of nodes of balance 0 along the rest of the path
     while(tree->cmpKey(r->key,key)) AssignBalance(r->balance,R,r,key,R,r);
     tree->n++;
+	return &p->info;
 }
 
 
