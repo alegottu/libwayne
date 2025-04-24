@@ -33,23 +33,25 @@ int main(int argc, char *argv[])
     {
 	AvlTreeSanityCheck(tree);
 	printf("lookup %s = ", key.s=buf);
-	if(AvlTreeLookup(tree, (foint)(key.s), &data))
-	    printf("%d\n", data.i);
+	foint* point = AvlTreeLookup(tree, (foint)(key.s));
+	if(point != NULL)
+	    printf("%d\n", point->i);
 	else
 	  puts("nope");
 	++lines;
 	AvlTreeSanityCheck(tree);
     }
-    assert(false == AvlTreeLookup(tree, (foint)(key.s="foo"), &data)); AvlTreeSanityCheck(tree);
-    assert(false == AvlTreeLookup(tree, (foint)(key.s="bar"), &data)); AvlTreeSanityCheck(tree);
-    assert(false == AvlTreeLookup(tree, (foint)(key.s="foobar"), &data)); AvlTreeSanityCheck(tree);
+    assert(NULL == AvlTreeLookup(tree, (foint)(key.s="foo"))); AvlTreeSanityCheck(tree);
+    assert(NULL == AvlTreeLookup(tree, (foint)(key.s="bar"))); AvlTreeSanityCheck(tree);
+    assert(NULL == AvlTreeLookup(tree, (foint)(key.s="foobar"))); AvlTreeSanityCheck(tree);
 
     while(lines>0) {
 	AvlTreeSanityCheck(tree);
 	--lines;
 	printf("Deleting <%s>; n=%d... ", bufs[lines], tree->n);
-	Boolean exists = AvlTreeLookup(tree, (foint)(key.s=bufs[lines]), &data);
-	assert(exists == AvlTreeDelete(tree, (foint)(key.s=bufs[lines])));
+	Boolean exists = AvlTreeLookup(tree, (foint)(key.s=bufs[lines])) != NULL;
+	Boolean del = AvlTreeDelete(tree, (foint)(key.s=bufs[lines])).v != NULL;
+	assert(exists == del);
 	printf("Deleted! n=%d\n", tree->n);
 	AvlTreeSanityCheck(tree);
     }

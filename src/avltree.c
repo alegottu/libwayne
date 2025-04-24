@@ -132,24 +132,22 @@ void AvlTreeInsert(AVLTREE *tree, foint key, foint info)
 }
 
 
-// if pInfo is 1, delete the element; NULL, just return Boolean if found; otherwise populate.
-Boolean AvlTreeLookDel(AVLTREE *tree, foint key, foint *pInfo)
+foint* const AvlTreeLookDel(AVLTREE *tree, foint key, Boolean delete)
 {
     AVLTREENODE *p = tree->root, **P = &(tree->root);
     while(p)
     {
 	int cmp = tree->cmpKey(key, p->key);
 	if(cmp == 0) {
-	    if((long)pInfo==1) break; // delete the element
-	    if(pInfo) *pInfo = p->info; // lookup with assign
-	    return true;
+	    if(delete) break; // delete the element
+		return &p->info;
 	}
 	else if(cmp < 0) AssignLocative(P,p,p->left);
 	else             AssignLocative(P,p,p->right);
     }
-    if(!p) return false; // node not found, nothing deleted
+    if(!p) return NULL; // node not found, nothing deleted
     // at this point we know the key has been found
-    if((long)pInfo == 1) { // delete the element
+    if(delete) { // delete the element
 	assert(tree->n > 0);
 	// At this point, p points to the node we want to delete. If either child is NULL, then the other child moves up.
 	if(p->left && p->right) *P = p->right; // two children, so replace node by its inorder successor
@@ -163,7 +161,18 @@ Boolean AvlTreeLookDel(AVLTREE *tree, foint key, foint *pInfo)
 
 	tree->n--;
     }
-    return true;
+    return NULL;
+}
+
+
+const foint SAvlTreeLookDel(AVLTREE *tree, foint key, Boolean delete)
+{
+	foint* result = AvlTreeLookDel(tree, key, delete);
+
+	if (result != NULL) 
+		return *result;
+	else
+		return (foint)NULL;
 }
 
 

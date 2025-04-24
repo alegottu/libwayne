@@ -32,9 +32,9 @@ static void HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint 
     else {
 	// Otherwise, we are NOT at the lowest level tree; the data members of these nodes are themselves other trees,
 	// so to find the next tree we use the key at this level to *look up* the binary tree at the next level down
-	foint nextLevel;
+	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
 	TREETYPE *nextTree;
-	if(!TreeLookup(tree, keys[currentDepth], &nextLevel)) {
+	if(nextLevel == NULL) {
 		pFointCopyFcn copyInfo = h->copyInfo;
 		pFointFreeFcn freeInfo = h->freeInfo;
 
@@ -43,11 +43,11 @@ static void HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint 
 			copyInfo = NULL; freeInfo = NULL;
 
 	    nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
-	    nextLevel.v = nextTree;
-	    TreeInsert(tree, keys[currentDepth], nextLevel);
+	    nextLevel->v = nextTree;
+	    TreeInsert(tree, keys[currentDepth], *nextLevel);
 	}
 	else
-	    nextTree = nextLevel.v;
+	    nextTree = nextLevel->v;
 	assert(nextTree);
 	HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
     }
@@ -60,27 +60,37 @@ void HTreeInsert(HTREE *h, foint keys[], foint data)
     HTreeInsertHelper(h, 0, h->tree, fkeys, data);
 }
 
-static Boolean HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], foint *pData)
+static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], Boolean delete)
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we've hit the lowest level tree; its data elements are the final elements.
-	return TreeLookDel(tree, keys[currentDepth], pData);
+	return TreeLookDel(tree, keys[currentDepth], delete);
     else {
-	foint nextLevel;
+	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
 	TREETYPE *nextTree;
-	if(!TreeLookup(tree, keys[currentDepth], &nextLevel))
-	    return false;
+	if(nextLevel == NULL)
+	    return NULL;
 	else
-	    nextTree = nextLevel.v;
+	    nextTree = nextLevel->v;
 	assert(nextTree);
-	return HTreeLookDelHelper(h, currentDepth+1, nextTree, keys, pData);
+	return HTreeLookDelHelper(h, currentDepth+1, nextTree, keys, delete);
     }
 }
 
-Boolean HTreeLookDel(HTREE *h, foint keys[], foint *pData)
+foint* HTreeLookDel(HTREE *h, foint keys[], Boolean delete)
 {
     foint fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    return HTreeLookDelHelper(h, 0, h->tree, fkeys, pData);
+    return HTreeLookDelHelper(h, 0, h->tree, fkeys, delete);
+}
+
+const foint SHTreeLookDel(HTREE* tree, foint keys[], Boolean delete)
+{
+	foint* result = HTreeLookDel(tree, keys, delete);
+
+	if (result != NULL) 
+		return *result;
+	else
+		return (foint)NULL;
 }
 
 static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], int sizes[])
@@ -90,12 +100,12 @@ static int HTreeSizesHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint ke
     if(currentDepth == h->depth-1) // we're hit the lowest level tree; its data elements are the final elements.
 	return 1;
     else {
-	foint nextLevel;
+	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
 	TREETYPE *nextTree;
-	if(!TreeLookup(tree, keys[currentDepth], &nextLevel))
+	if(nextLevel == NULL)
 	    return 1;
 	else
-	    nextTree = nextLevel.v;
+	    nextTree = nextLevel->v;
 	assert(nextTree);
 	return 1 + HTreeSizesHelper(h, currentDepth+1, nextTree, keys, sizes);
     }
