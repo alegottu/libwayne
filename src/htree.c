@@ -43,8 +43,7 @@ static foint* const HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree
 				copyInfo = NULL; freeInfo = NULL;
 
 			nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
-			nextLevel->v = nextTree;
-			TreeInsert(tree, keys[currentDepth], *nextLevel);
+			TreeInsert(tree, keys[currentDepth], (foint){.v=nextTree});
 		}
 		else
 			nextTree = nextLevel->v;
@@ -89,7 +88,8 @@ const Boolean SHTreeLookup(HTREE* tree, foint keys[], foint* pInfo)
 
 	if (result != NULL) 
 	{
-		*pInfo = *result;
+		if (pInfo != NULL)
+			*pInfo = *result;
 		return true;
 	}
 	else
