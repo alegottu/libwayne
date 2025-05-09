@@ -59,11 +59,12 @@ foint* const HTreeInsert(HTREE *, foint keys[], foint info);
 
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element if delete is true
-foint* HTreeLookDel(HTREE *, foint keys[], Boolean delete);
+foint* HTreeLookDel(HTREE *, foint keys[], int targetDepth, Boolean delete);
 // "safe" version, only gives a value, returns false if not found
-const Boolean SHTreeLookup(HTREE*, foint keys[], foint* pInfo);
-#define HTreeLookup(h,k) HTreeLookDel((h),(k),false)
-#define HTreeDelete(h,k) HTreeLookDel((h),(k),true)
+const Boolean SHTreeLookup(HTREE*, foint keys[], int targetDepth, foint* pInfo);
+#define HTreeLookup(h,k) HTreeLookDel((h),(k),-1,false)
+#define HTreeDelete(h,k) HTreeLookDel((h),(k),-1,true)
+#define HTreeDeleteInner(h,k,d) HTreeLookDel((h),(k),(d),true)
 
 // number of elements in trees down the hierarchy along key path; returns number of sizes[] we managed to fill,
 // which should be equal to depth.
