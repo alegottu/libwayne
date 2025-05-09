@@ -18,7 +18,9 @@ HTREE *HTreeAlloc(int depth, pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFc
 
 	// Intermediary trees only store pointers, default copy and free should be used
 	if (depth != 1)
+	{
 		copyInfo = NULL; freeInfo = NULL;
+	}
 
     h->tree = TreeAlloc(cmpKey, copyKey, freeKey, copyInfo, freeInfo);
     return h;
@@ -40,7 +42,9 @@ static foint* const HTreeInsertHelper(HTREE *h, int currentDepth, TREETYPE *tree
 
 			// Intermediary trees only store pointers, default copy and free should be used
 			if (currentDepth < (h->depth-2))
+			{
 				copyInfo = NULL; freeInfo = NULL;
+			}
 
 			nextTree = TreeAlloc(h->cmpKey, h->copyKey, h->freeKey, copyInfo, freeInfo);
 			TreeInsert(tree, keys[currentDepth], (foint){.v=nextTree});
@@ -59,11 +63,18 @@ foint* const HTreeInsert(HTREE *h, foint keys[], foint data)
     return HTreeInsertHelper(h, 0, h->tree, fkeys, data);
 }
 
-static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], Boolean delete)
+static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foint keys[], int targetDepth, Boolean delete)
 {
-    assert(tree && 0 <= currentDepth && currentDepth < h->depth);
-    if(currentDepth == h->depth-1) // we've hit the lowest level tree; its data elements are the final elements.
-	return TreeLookDel(tree, keys[currentDepth], delete);
+    assert(tree && 0 <= currentDepth && currentDepth < targetDepth);
+    if(currentDepth == targetDepth-1)
+	{
+		if (delete && targetDepth < h->depth)
+		{
+			AvlTreeSpecialDel(tree, keys[currentDepth], (pFointFreeFcn)TreeFree);
+			return NULL;
+		}
+		else return TreeLookDel(tree, keys[currentDepth], delete);
+	}
     else {
 	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
 	TREETYPE *nextTree;
@@ -72,19 +83,21 @@ static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foi
 	else
 	    nextTree = nextLevel->v;
 	assert(nextTree);
-	return HTreeLookDelHelper(h, currentDepth+1, nextTree, keys, delete);
+	return HTreeLookDelHelper(h, currentDepth+1, nextTree, keys, targetDepth, delete);
     }
 }
 
-foint* HTreeLookDel(HTREE *h, foint keys[], Boolean delete)
+foint* HTreeLookDel(HTREE *h, foint keys[], int targetDepth, Boolean delete)
 {
+	assert(targetDepth <= h->depth);
+	targetDepth = targetDepth < 0 ? h->depth : targetDepth;
     foint fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
-    return HTreeLookDelHelper(h, 0, h->tree, fkeys, delete);
+    return HTreeLookDelHelper(h, 0, h->tree, fkeys, targetDepth, delete);
 }
 
-const Boolean SHTreeLookup(HTREE* tree, foint keys[], foint* pInfo)
+const Boolean SHTreeLookup(HTREE* tree, foint keys[], int targetDepth, foint* pInfo)
 {
-	foint* result = HTreeLookDel(tree, keys, false);
+	foint* result = HTreeLookDel(tree, keys, targetDepth, false);
 
 	if (result != NULL) 
 	{
