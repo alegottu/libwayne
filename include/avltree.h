@@ -44,7 +44,7 @@ const Boolean SAvlTreeLookup(AVLTREE *, foint key, foint* pInfo);
 #define AvlTreeLookup(T,k) AvlTreeLookDel((T),(k),false)
 
 // deletes an element after performing the action defined by func
-void AvlTreeSpecialDel(AVLTREE *, foint key, pFointFreeFcn func);
+const Boolean AvlTreeSpecialDel(AVLTREE *, foint key, pFointFreeFcn func);
 
 /*
 ** AvlTreeTraverse: Traverse an AVL tree, calling your function pointer (pFointTraversalFcn) on each element,

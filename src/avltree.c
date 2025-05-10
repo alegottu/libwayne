@@ -166,7 +166,7 @@ foint* const AvlTreeLookDel(AVLTREE *tree, foint key, Boolean delete)
 }
 
 
-void AvlTreeSpecialDel(AVLTREE *tree, foint key, pFointFreeFcn func)
+const Boolean AvlTreeSpecialDel(AVLTREE *tree, foint key, pFointFreeFcn func)
 {
 	AVLTREENODE *p = tree->root, **P = &(tree->root);
     while(p)
@@ -176,7 +176,7 @@ void AvlTreeSpecialDel(AVLTREE *tree, foint key, pFointFreeFcn func)
 	else if(cmp < 0) AssignLocative(P,p,p->left);
 	else             AssignLocative(P,p,p->right);
     }
-    if(!p) return; // node not found, nothing deleted
+    if(!p) return false; // node not found, nothing deleted
     // at this point we know the key has been found
 	assert(tree->n > 0);
 	// At this point, p points to the node we want to delete. If either child is NULL, then the other child moves up.
@@ -191,6 +191,7 @@ void AvlTreeSpecialDel(AVLTREE *tree, foint key, pFointFreeFcn func)
 	Free(p);
 
 	tree->n--;
+	return true;
 }
 
 
