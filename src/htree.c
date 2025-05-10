@@ -70,8 +70,8 @@ static foint* HTreeLookDelHelper(HTREE *h, int currentDepth, TREETYPE *tree, foi
 	{
 		if (delete && targetDepth < h->depth)
 		{
-			AvlTreeSpecialDel(tree, keys[currentDepth], (pFointFreeFcn)TreeFree);
-			return NULL;
+			if (AvlTreeSpecialDel(tree, keys[currentDepth], (pFointFreeFcn)TreeFree)) return (foint*)1;
+			else return NULL;
 		}
 		else return TreeLookDel(tree, keys[currentDepth], delete);
 	}
