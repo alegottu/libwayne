@@ -90,7 +90,7 @@ static foint* HTreeLookDelHelper(HTREE *h, unsigned char currentDepth, TREETYPE 
 foint* HTreeLookDel(HTREE *h, foint keys[], unsigned char targetDepth, Boolean delete)
 {
 	assert(targetDepth <= h->depth);
-	targetDepth = targetDepth < 0 ? h->depth : targetDepth;
+	targetDepth = targetDepth == 0 ? h->depth : targetDepth;
     foint fkeys[h->depth]; int i; for(i=0; i < h->depth; i++) fkeys[i] = keys[i];
     return HTreeLookDelHelper(h, 0, h->tree, fkeys, targetDepth, delete);
 }
