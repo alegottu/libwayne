@@ -1,8 +1,14 @@
+#include <stdio.h>
+#include <wchar.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "misc.h"
 #include "htree.h" // bintree or avltree is included there (as appropriate)
+
+#ifdef VERBOSE
+#include <time.h>
+#endif
 
 /*-------------------  Types  ------------------*/
 
@@ -30,7 +36,30 @@ static foint* const HTreeInsertHelper(HTREE *h, unsigned char currentDepth, TREE
 {
     assert(tree && 0 <= currentDepth && currentDepth < h->depth);
     if(currentDepth == h->depth-1) // we're hit the lowest level tree; its data elements are the final elements.
-		return TreeInsert(tree, keys[currentDepth], data);
+	{
+		#ifdef VERBOSE
+		printf("Inserting [%s] = %s for the tree at ", keys[currentDepth].s, data.s);
+		for (unsigned char i = 0; i < currentDepth; ++i)
+		{
+			printf("[%s]", keys[i].s);
+		}
+		printf(" which currently has %i ELEMENTS\n", tree->n);
+
+		clock_t start, end;
+		double cpuTimeUsed;
+		start = clock();
+		#endif
+
+		foint* result = TreeInsert(tree, keys[currentDepth], data);
+
+		#ifdef VERBOSE
+		end = clock();
+		cpuTimeUsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+		printf("Insertion took %f seconds\n", cpuTimeUsed);
+		#endif
+
+		return result;
+	}
     else {
 		// Otherwise, we are NOT at the lowest level tree; the data members of these nodes are themselves other trees,
 		// so to find the next tree we use the key at this level to *look up* the binary tree at the next level down
@@ -50,7 +79,10 @@ static foint* const HTreeInsertHelper(HTREE *h, unsigned char currentDepth, TREE
 			TreeInsert(tree, keys[currentDepth], (foint){.v=nextTree});
 		}
 		else
+		{
 			nextTree = nextLevel->v;
+		}
+			
 		assert(nextTree);
 		return HTreeInsertHelper(h, currentDepth+1, nextTree, keys, data);
     }
@@ -63,17 +95,30 @@ foint* const HTreeInsert(HTREE *h, foint keys[], foint data)
     return HTreeInsertHelper(h, 0, h->tree, fkeys, data);
 }
 
+static void FreeInnerTree(foint tree)
+{
+	TreeFree(tree.v);
+}
+
 static foint* HTreeLookDelHelper(HTREE *h, unsigned char currentDepth, TREETYPE *tree, foint keys[], unsigned char targetDepth, Boolean delete)
 {
     assert(tree && 0 <= currentDepth && currentDepth < targetDepth);
     if(currentDepth == targetDepth-1)
 	{
-		if (delete && targetDepth < h->depth)
+		if (delete)
 		{
-			if (AvlTreeSpecialDel(tree, keys[currentDepth], (pFointFreeFcn)TreeFree)) return (foint*)1;
-			else return NULL;
+			if (targetDepth < h->depth)
+			{
+				pFointFreeFcn freeInfo = tree->freeInfo;
+				tree->freeInfo = (pFointFreeFcn)FreeInnerTree; 
+				foint* result = AvlTreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
+				tree->freeInfo = freeInfo;
+				return result;
+			}
+			else
+				return AvlTreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
 		}
-		else return TreeLookDel(tree, keys[currentDepth], delete);
+		else return TreeLookup(tree, keys[currentDepth]);
 	}
     else {
 	foint* nextLevel = TreeLookup(tree, keys[currentDepth]);
