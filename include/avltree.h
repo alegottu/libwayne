@@ -37,11 +37,10 @@ foint* const AvlTreeInsert(AVLTREE *, foint key, foint info);
 
 // returns a foint* so that you can modify the element without having to re-insert it; 
 // returns NULL upon failure; deletes the element when delete is true
-foint* const AvlTreeLookDel(AVLTREE *, foint key, Boolean delete);
+foint* const AvlTreeLookup(AVLTREE *, foint key);
+const Boolean AvlTreeDelete(AVLTREE *, foint key);
 // "safe" version, just gives a value, returns false if not found
 const Boolean SAvlTreeLookup(AVLTREE *, foint key, foint* pInfo);
-#define AvlTreeDelete(T,k) AvlTreeLookDel((T),(k),true)
-#define AvlTreeLookup(T,k) AvlTreeLookDel((T),(k),false)
 
 // deletes an element after performing the action defined by func
 const Boolean AvlTreeSpecialDel(AVLTREE *, foint key, pFointFreeFcn func);
