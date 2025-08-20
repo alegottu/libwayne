@@ -258,14 +258,14 @@ foint* const AvlTreeInsert(AVLTREE *tree, foint key, foint info)
 
 foint* const AvlTreeLookup(AVLTREE *tree, foint key)
 {
-    AVLTREENODE *p = tree->root, **P = &(tree->root);
+    AVLTREENODE *p = tree->root;
 
     while(p)
     {
 		int cmp = tree->cmpKey(key, p->key);
 		if(cmp == 0) return &p->info;
-		else if(cmp < 0) AssignLocative(P,p,p->left);
-		else             AssignLocative(P,p,p->right);
+		else if(cmp < 0) p = p->left;
+		else             p = p->right;
 	}
     
     return NULL;
