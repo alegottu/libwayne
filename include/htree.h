@@ -21,6 +21,7 @@ extern "C" {
 #define TreeAlloc AvlTreeAlloc
 #define TreeInsert AvlTreeInsert
 #define TreeLookup AvlTreeLookup
+#define TreeDelete AvlTreeDelete
 #define STreeLookup SAvlTreeLookup
 #define TreeTraverse AvlTreeTraverse
 #define TreeFree AvlTreeFree
@@ -30,7 +31,8 @@ extern "C" {
 #define TreeAlloc BinTreeAlloc
 #define TreeInsert BinTreeInsert
 #define TreeLookup BinTreeLookup
-#define TreeLookDel BinTreeLookDel
+#define TreeDelete BinTreeDelete
+#define STreeLookup SBinTreeLookup
 #define TreeTraverse BinTreeTraverse
 #define TreeFree BinTreeFree
 #endif

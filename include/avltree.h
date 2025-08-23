@@ -42,9 +42,6 @@ const Boolean AvlTreeDelete(AVLTREE *, foint key);
 // "safe" version, just gives a value, returns false if not found
 const Boolean SAvlTreeLookup(AVLTREE *, foint key, foint* pInfo);
 
-// deletes an element after performing the action defined by func
-const Boolean AvlTreeSpecialDel(AVLTREE *, foint key, pFointFreeFcn func);
-
 /*
 ** AvlTreeTraverse: Traverse an AVL tree, calling your function pointer (pFointTraversalFcn) on each element,
 ** in order. It will return -k if k elements were deleted, otherwise 0 or 1 as returned by your function.

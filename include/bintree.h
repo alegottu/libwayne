@@ -32,12 +32,15 @@ typedef struct _binTree
 BINTREE *BinTreeAlloc(pCmpFcn cmpKey, pFointCopyFcn copyKey, pFointFreeFcn freeKey,
 	    pFointCopyFcn copyInfo, pFointFreeFcn freeInfo);
 
-void BinTreeInsert(BINTREE *, foint key, foint info); // replaces info if the key already exists
+// replaces info if the key already exists, returns a pointer to the info inserted
+foint* const BinTreeInsert(BINTREE *, foint key, foint info);
 
-/* O(log n); returns false if failure, and true if found and then assigns to *pInfo if *pInfo is non-NULL */
-Boolean BinTreeLookDel(BINTREE *, foint key, foint *pInfo);
-#define BinTreeLookup(t,k,p) BinTreeLookDel((t),(k),(p))
-#define BinTreeDelete(t,k)   BinTreeLookDel((t),(k),(foint*)1)
+// returns a foint* so that you can modify the element without having to re-insert it; 
+// returns NULL upon failure; deletes the element when delete is true
+foint* const BinTreeLookup(BINTREE *, foint key);
+const Boolean BinTreeDelete(BINTREE *, foint key);
+// "safe" version, just gives a value, returns false if not found
+const Boolean SBinTreeLookup(BINTREE *, foint key, foint* pInfo);
 void BinTreeDelNode(BINTREE *tree, BINTREENODE *p, BINTREENODE **P); // O(1): delete exactly one node
 
 /*

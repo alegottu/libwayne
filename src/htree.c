@@ -111,12 +111,12 @@ static foint* HTreeLookDelHelper(HTREE *h, unsigned char currentDepth, TREETYPE 
 			{
 				pFointFreeFcn freeInfo = tree->freeInfo;
 				tree->freeInfo = (pFointFreeFcn)FreeInnerTree; 
-				foint* result = AvlTreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
+				foint* result = TreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
 				tree->freeInfo = freeInfo;
 				return result;
 			}
 			else
-				return AvlTreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
+				return TreeDelete(tree, keys[currentDepth]) ? (foint*)1:NULL;
 		}
 		else return TreeLookup(tree, keys[currentDepth]);
 	}
