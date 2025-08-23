@@ -687,13 +687,13 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	    selfWarned = true;
 	}
 	if(supportNodeNames) {
-	    if(!BinTreeLookup(nameDict, (foint)v1.name, &f1))
+	    if(!SBinTreeLookup(nameDict, (foint)v1.name, &f1))
 	    {
 		names[numNodes] = Strdup(v1.name);
 		f1.i = numNodes++;
 		BinTreeInsert(nameDict, (foint)v1.name, f1);
 	    }
-	    if(!BinTreeLookup(nameDict, (foint)v2.name, &f2))
+	    if(!SBinTreeLookup(nameDict, (foint)v2.name, &f2))
 	    {
 		names[numNodes] = Strdup(v2.name);
 		f2.i = numNodes++;
@@ -725,7 +725,7 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	for(i=0; i<numNodes;i++)
 	{
 	    foint info;
-	    if(!BinTreeLookup(nameDict, (foint)names[i], &info))
+	    if(!SBinTreeLookup(nameDict, (foint)names[i], &info))
 		Fatal("couldn't find int for name '%s'", names[i]);
 	    assert(i == info.i);
 	    //printf("%d is %s which in turn is %d\n", i, names[i], info.i);
@@ -755,7 +755,7 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 int GraphNodeName2Int(GRAPH *G, char *name)
 {
     foint info;
-    if(!BinTreeLookup(G->nameDict, (foint)name, &info))
+    if(!SBinTreeLookup(G->nameDict, (foint)name, &info))
 	Fatal("BinTreeLookup couldn't find an int for name '%s'", name);
     return info.i;
 }
