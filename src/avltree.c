@@ -317,7 +317,7 @@ const Boolean AvlTreeDelete(AVLTREE *tree, foint key)
 	// Update balance then rotate if necessary
 	if (parent->balance == 0)
 		parent->balance = (parent->right==*P || parent==*P) ? -1:1;
-	else if (tree->n > 1)
+	else
 	{ // The height of the subtree has changed; need to check balance potentially all the way to the root
 		STACK *nodePath = StackAlloc(MaxHeight);
 		StackPush(nodePath, (foint){.v=&(tree->root)}); // Contains locatives
@@ -452,7 +452,7 @@ const Boolean AvlTreeDelete(AVLTREE *tree, foint key)
 	}
 
 	#ifdef VERBOSE
-	CheckBalance(tree->root, 0);
+	if (tree->n > 0) CheckBalance(tree->root, 0);
 	#endif
 
 	return true;
