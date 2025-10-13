@@ -1,3 +1,5 @@
+// This software is part of github.com/waynebhayes/libwayne, and is Copyright(C) Wayne B. Hayes 2025, under the GNU LGPL 3.0
+// (GNU Lesser General Public License, version 3, 2007), a copy of which is contained at the top of the repo.
 #include "misc.h"
 #include "avltree.h"
 #include <string.h>
@@ -7,16 +9,13 @@
 
 #define lineLen 40
 
-/* Usage: ./avltree-test avltree-test.in
-Enter keys to lookup; EOF to exit this loop */
-
 int main(int argc, char *argv[])
 {
     assert(argc == 2);
-
+{
     FILE *fp = fopen(argv[1], "r");
     AVLTREE *tree = AvlTreeAlloc((pCmpFcn)strcmp, (pFointCopyFcn)strdup, (pFointFreeFcn)free, NULL, NULL);
-    static char buf[lineLen], bufs[1000*BUFSIZ][lineLen];
+    char buf[lineLen], bufs[1000*BUFSIZ][lineLen];
     foint key, data;
     int lines=0;
 
@@ -59,4 +58,5 @@ int main(int argc, char *argv[])
     AvlTreeSanityCheck(tree);
     AvlTreeFree(tree);
     return 0;
+}
 }

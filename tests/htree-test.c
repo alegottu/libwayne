@@ -1,12 +1,11 @@
+// This software is part of github.com/waynebhayes/libwayne, and is Copyright(C) Wayne B. Hayes 2025, under the GNU LGPL 3.0
+// (GNU Lesser General Public License, version 3, 2007), a copy of which is contained at the top of the repo.
 #include "misc.h"
 #include "htree.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
-/* Usage: ./htree-test htree-test.in
-Enter 3 keys per line to lookup; EOF to exit*/
 
 #define DEPTH 3
 int main(int argc, char *argv[])

@@ -1,3 +1,5 @@
+// This software is part of github.com/waynebhayes/libwayne, and is Copyright(C) Wayne B. Hayes 2025, under the GNU LGPL 3.0
+// (GNU Lesser General Public License, version 3, 2007), a copy of which is contained at the top of the repo.
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -588,6 +590,24 @@ GRAPH *GraphReadAdjList(FILE *fp, Boolean sparse)
     return G;
 }
 
+// Add the list of edges to the graph--should only be called while the graph is being built immediately after Alloc
+GRAPH *GraphAddEdgeList(GRAPH *G, unsigned m, unsigned *pairs, float *weights)
+{
+    int i;
+    Apology("Sorry, GraphAddEdgeList not yet implemented");
+    if(weights) assert(G->weight);
+    for(i=0; i<m; i++) {
+	if(pairs[2*i] == pairs[2*i+1] && !G->selfAllowed) {
+	    static Boolean warned;
+	    if(!warned) Warning("GraphAddEdgeList: node %d has a self-loop; assuming they are allowed", pairs[2*i]);
+	    warned = G->selfAllowed = true;
+	}
+	GraphConnect(G, pairs[2*i], pairs[2*i+1]);
+	if(weights) {assert(weights[i]!=0.0); GraphSetWeight(G, pairs[2*i], pairs[2*i+1], weights[i]);}
+    }
+    return G;
+}
+
 GRAPH *GraphFromEdgeList(unsigned n, unsigned m, unsigned *pairs, Boolean sparse, float *weights)
 {
     int i;
@@ -660,7 +680,11 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	if(numEdges >= maxEdges)
 	{
 	    maxEdges = 2*maxEdges-1; // -1 to reduce chance of overflow near 2GB and 4GB.
-	    pairs = Realloc(pairs, 2*maxEdges*sizeof(pairs[0]));
+	    unsigned newBytes = 2*maxEdges*sizeof(pairs[0]);
+	    if(newBytes >= (1U<<30)) {
+		Warning("about to Reallac(%u) bytes--might segfault; implement GraphAddEdgeList to avoid this", newBytes);
+	    }
+	    pairs = Realloc(pairs, newBytes);
 	    if(weighted) fweight = Realloc(fweight, maxEdges*sizeof(fweight[0]));
 	}
 	const char numExpected[2] = {2, 3}, // fmt[][] below has dimensions [supportNames][weighted]
@@ -668,6 +692,10 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	// name and foints are used only if supportNodeNames is true
 	union {int i; char name[BUFSIZ];} v1, v2;
 	foint f1, f2;
+	// Note: if !supportNodeNames, a binary integer will be written into the name unions
+	if(sscanf(line, fmt[supportNodeNames][weighted], v1.name, v2.name, &w) != numExpected[weighted])
+	    Fatal("GraphReadEdgeList: line %d must contain 2 %s%s, but instead is\n%s\n", numEdges,
+		(supportNodeNames ? "strings":"ints"), (weighted ? " and a weight":""), line);
 	if(supportNodeNames)
 	{
 	    assert(numNodes <= maxNodes);
@@ -676,17 +704,12 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 		maxNodes *=2;
 		names = Realloc(names, maxNodes*sizeof(names[0]));
 	    }
-	}
-	// Note: if !supportNodeNames, a binary integer will be written into the name unions
-	if(sscanf(line, fmt[supportNodeNames][weighted], v1.name, v2.name, &w) != numExpected[weighted])
-	    Fatal("GraphReadEdgeList: line %d must contain 2 %s%s, but instead is\n%s\n", numEdges,
-		(supportNodeNames ? "strings":"ints"), (weighted ? " and a weight":""), line);
-	if(strcmp(v1.name,v2.name)==0 && !selfWarned) {
-	    Warning("GraphReadEdgeList: line %d has self-loop (%s to itself); assuming they are allowed", numEdges, v1.name);
-	    Warning("GraphReadEdgeList: (another warning will appear below from \"GraphFromEdgeList\")");
-	    selfWarned = true;
-	}
-	if(supportNodeNames) {
+
+	    if(strcmp(v1.name,v2.name)==0 && !selfWarned) {
+		Warning("GraphReadEdgeList: line %d has self-loop (%s to itself); assuming they are allowed",numEdges,v1.name);
+		Warning("GraphReadEdgeList: (another warning will appear below from \"GraphFromEdgeList\")");
+		selfWarned = true;
+	    }
 	    if(!SBinTreeLookup(nameDict, (foint)v1.name, &f1))
 	    {
 		names[numNodes] = Strdup(v1.name);
@@ -702,9 +725,14 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	    v1.i = f1.i; v2.i = f2.i;
 	}
 	else {
+	    if(v1.i==v2.i && !selfWarned) {
+		Warning("GraphReadEdgeList: line %d has self-loop (%d to itself); assuming they are allowed",numEdges,v1.i);
+		Warning("GraphReadEdgeList: (another warning will appear below from \"GraphFromEdgeList\")");
+		selfWarned = true;
+	    }
 	    // if !supportNodeNames, fscanf wrote the integers into the char* pointers
-	    numNodes = MAX(numNodes, v1.i);
-	    numNodes = MAX(numNodes, v2.i);
+	    numNodes = MAX(numNodes, v1.i+1);
+	    numNodes = MAX(numNodes, v2.i+1);
 	}
 	pairs[2*numEdges] = v1.i;
 	pairs[2*numEdges+1] = v2.i;
@@ -731,8 +759,6 @@ GRAPH *GraphReadEdgeList(FILE *fp, Boolean sparse, Boolean supportNodeNames, Boo
 	    //printf("%d is %s which in turn is %d\n", i, names[i], info.i);
 	}
     }
-    else
-	numNodes++;	// increase it by one since so far it's simply been the biggest integer seen on the input.
 
     GRAPH *G = GraphFromEdgeList(numNodes, numEdges, pairs, sparse, fweight);
     G->supportNodeNames = supportNodeNames;
